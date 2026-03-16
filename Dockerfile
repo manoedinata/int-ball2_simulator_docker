@@ -250,6 +250,8 @@ RUN apt-get install -y libpcl-dev ros-noetic-pcl-ros && \
 COPY init-container.sh /
 RUN chmod +x /init-container.sh
 
+ENV DISABLE_ROS1_EOL_WARNINGS=1
+
 # コンテナ起動時のデフォルトコマンド
 # CMD ["/init-container.sh"]
 
