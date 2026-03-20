@@ -11,7 +11,7 @@ services:
       - DISPLAY # ホストのDISPLAY環境変数の値を反映する
       # - NVIDIA_VISIBLE_DEVICES=all
       # - NVIDIA_DRIVER_CAPABILITIES=all
-      - LIBGL_ALWAYS_INDIRECT=0  # WSLgでは直接描画が可能な場合が多い
+      # - LIBGL_ALWAYS_INDIRECT=0  # WSLgでは直接描画が可能な場合が多い
       - QT_X11_NO_MITSHM=1
       - MESA_GL_VERSION_OVERRIDE=3.3
     tty: true
