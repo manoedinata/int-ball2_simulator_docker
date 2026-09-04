@@ -1,25 +1,26 @@
-# Int‑Ball2 シミュレータ Docker 環境 🚀
+# Int‑Ball2 Simulator Docker Environment 🚀
 
 <p style="display: inline">
   <img src="https://img.shields.io/badge/-Docker-1488C6.svg?logo=docker&style=flat">
   <img src="https://img.shields.io/badge/ROS-darkblue?logo=ros">
 </p>
 
+*[日本語版 / Japanese version](README.jp.md)*
 
- **int‑ball2_simulator_docker** は、[JAXA Int‑Ball2 シミュレータ](https://github.com/jaxa/int-ball2_simulator)とユーザープログラム (制御ノード) を Docker イメージ化し、Docker Compose で連携動作させるための環境を提供します。  
-マイクロ重力環境下での飛行ロボットの挙動を手軽にシミュレーションできます。💫
-
----
-
-## 概要 / Overview ✨
-
-- **目的**: Int‑Ball2 シミュレータ + ユーザープログラムを簡単なコマンドで起動  
-- **検証環境**: Windows 11 + WSL2 (Ubuntu 24.04)  
-- **主要技術**: Docker‑outside‑of‑Docker (DooD)、ROS、X11 / WSLg
+ **int‑ball2_simulator_docker** packages the [JAXA Int‑Ball2 simulator](https://github.com/jaxa/int-ball2_simulator) and your user program (control node) as Docker images, and provides an environment for running them together with Docker Compose.  
+It lets you easily simulate the behavior of a free‑flying robot in a microgravity environment. 💫
 
 ---
 
-## アーキテクチャ概要 🖼️
+## Overview ✨
+
+- **Purpose**: Launch the Int‑Ball2 simulator + your user program with simple commands  
+- **Verified environment**: Windows 11 + WSL2 (Ubuntu 24.04)  
+- **Key technologies**: Docker‑outside‑of‑Docker (DooD), ROS, X11 / WSLg
+
+---
+
+## Architecture Overview 🖼️
 
   ```mermaid
   graph TB
@@ -44,67 +45,67 @@
       userProgram -- "Control" --> rvizGazebo
   ```
 
-1. ホスト環境に、**シミュレータコンテナ** 、**ユーザープログラムコンテナ** 、**ユーザープログラム** を配置
-2. **シミュレータコンテナ** の GSE からホストの Docker Engine を操作し、**ユーザープログラムコンテナ**を起動  
-3. `/var/run/docker.sock` を共有し **ユーザープログラムコンテナ** を生成・管理
-4. **ユーザープログラムコンテナ** はホスト環境にあるユーザープログラムを起動し**シミュレータコンテナ** のInt-Ball2モデルを操作
-3. GUI 表示は X11 / WSLg 経由でホストの画面へ出力  
+1. The **simulator container**, the **user program container**, and the **user program** are all placed on the host environment.
+2. The GSE inside the **simulator container** operates the host's Docker Engine to launch the **user program container**.  
+3. `/var/run/docker.sock` is shared so that the **user program container** can be created and managed.
+4. The **user program container** launches the user program located on the host environment, which controls the Int‑Ball2 model in the **simulator container**.
+5. The GUI is displayed on the host's screen via X11 / WSLg.  
 
 ---
 
-## 前提条件 / Prerequisites 📝
+## Prerequisites 📝
 
-- ホスト環境に**Docker** と **Docker Compose** がインストール済み  
-- [**Qt アカウント**](https://login.qt.io/login)（メールアドレス & パスワード）  
-- シミュレータ GUI 表示のための **X11/WSLg** 環境
+- **Docker** and **Docker Compose** installed on the host environment  
+- A [**Qt account**](https://login.qt.io/login) (email address & password)  
+- An **X11/WSLg** environment for displaying the simulator GUI
 
-> **備考**: Qt ライセンス登録は無料です。  
+> **Note**: Registering a Qt license is free.  
 
 ---
 
-## セットアップと実行手順 💻
+## Setup and Execution Steps 💻
 
-### 1. このリポジトリのクローン
+### 1. Clone this repository
 
 ```bash
-cd ~ # 任意
+cd ~ # any directory
 git clone https://github.com/jaxa/int-ball2_simulator_docker.git
 cd int-ball2_simulator_docker
 ```
 
-### 2. ファイル共有ディレクトリの作成
+### 2. Create the shared file directory
 
 ```bash
 mkdir -p shared_data_sim
 ```
 
-### 3. ユーザープログラムの配置
+### 3. Place your user program
 
-ユーザープログラムの ROS パッケージを`int-ball2_simulator_docker/ib2_user_ws/src/user/` に配置します。
+Put the ROS package of your user program under `int-ball2_simulator_docker/ib2_user_ws/src/user/`.
 
-### 4. シミュレータ Docker イメージのビルド
-コマンド実行前に、`your.email@example.com` と `your_password` をあなたのQtアカウント情報で置き換えてください。
+### 4. Build the simulator Docker image
+Before running the command, replace `your.email@example.com` and `your_password` with your own Qt account credentials.
 
 ```bash
 docker build --build-arg HOST_USER_PATH="$(pwd)" --build-arg QT_EMAIL=your.email@example.com --build-arg QT_PASSWORD=your_password -t ib2_simulator:latest .
 ```
 
-**(オプション)**
+**(Optional)**
 
-ビルド済みイメージの利用も可能です。（ただしそのままでは、ユーザー名「nvidia」かつ「~/int-ball2_simulator_docker」のディレクトリ構造を要求します）
+You can also use a pre-built image. (However, as-is it requires the user name "nvidia" and the directory structure "~/int-ball2_simulator_docker".)
 
 ```bash
 docker pull ghcr.io/jaxa/ib2_simulator:latest
-docker tag ghcr.io/jaxa/ib2_simulator:latest ib2_simulator:latest # 以降の説明と合わせる場合
+docker tag ghcr.io/jaxa/ib2_simulator:latest ib2_simulator:latest # to match the rest of this guide
 ```
 
-> **注意**: 初回ビルドは 60 分以上かかる場合があります。
+> **Caution**: The first build can take more than 60 minutes.
 
-### 5. ユーザープログラムのビルド
-シミュレータコンテナのROSシステムを使用して、ホスト環境にあるユーザープログラムをビルドします。
+### 5. Build the user program
+Build the user program located on the host environment using the ROS system of the simulator container.
 
 ```bash
-cd ~/int-ball2_simulator_docker # 任意
+cd ~/int-ball2_simulator_docker # any directory
 docker run --rm \
   -v "$(pwd)/ib2_user_ws:$(pwd)/ib2_user_ws" \
   ib2_simulator:latest \
@@ -113,49 +114,49 @@ docker run --rm \
            cd $(pwd)/ib2_user_ws && catkin_make"
 ```
 
-### 6. platform_works イメージのビルド
-ユーザープログラムイメージをビルドします。
+### 6. Build the platform_works image
+Build the user program image.
 
 ```bash
-cd ~ # 任意
+cd ~ # any directory
 git clone https://github.com/jaxa/int-ball2_platform_works.git platform_works
 cd platform_works/platform_docker/template
 docker build -t ib2_user:0.1 .
 ```
 
-### 7. Docker Compose シミュレータコンテナを起動
+### 7. Start the simulator container with Docker Compose
 
 ```bash
-# シミュレータ & ユーザープログラムをバックグラウンド起動
+# Start the simulator & user program in the background
 cd int-ball2_simulator_docker
 PWD=$(pwd) docker compose up -d
 
-# シミュレータコンテナに入る場合
+# To enter the simulator container
 docker exec -it ib2_simulator bash
 ```
 
 ---
 
-## シミュレータの実行手順 🕹️
+## Running the Simulator 🕹️
 
-### ターミナル 1: GSE 起動
+### Terminal 1: Start the GSE
 
-上記7の続きから、
+Continuing from step 7 above:
 
 ```bash
-# ib2_simulatorコンテナ内で
+# Inside the ib2_simulator container
 source /opt/ros/melodic/setup.bash
 source /home/nvidia/IB2/Int-Ball2_platform_gse/devel/setup.bash
 roslaunch platform_gui bringup.launch
 ```
 
-### ターミナル 2: シミュレータ起動
-別のターミナルで以下を実行
+### Terminal 2: Start the simulator
+Run the following in another terminal:
 
 ```bash
 docker exec -it ib2_simulator bash
 
-# コンテナ内
+# Inside the container
 source /opt/ros/melodic/setup.bash
 source /home/nvidia/IB2/Int-Ball2_platform_simulator/devel/setup.bash
 rosrun platform_sim_tools simulator_bringup.sh
@@ -163,9 +164,9 @@ rosrun platform_sim_tools simulator_bringup.sh
 
 ---
 
-## ユーザープログラムの更新方法 🔄
+## How to Update the User Program 🔄
 
-プログラム変更後は再ビルドが必要です。
+After changing your program, you need to rebuild it.
 
 ```bash
 docker run --rm \
@@ -174,17 +175,17 @@ docker run --rm \
   bash -c "source /opt/ros/melodic/setup.bash && \
            source /home/nvidia/IB2/Int-Ball2_platform_simulator/devel/setup.bash && \
            cd $(pwd)/ib2_user_ws && catkin_make"
-PWD=$(pwd) docker compose restart        # 必要に応じて
+PWD=$(pwd) docker compose restart        # if necessary
 ```
 
 ---
 
-## プラットフォーム別の設定 ⚙️
+## Platform-Specific Settings ⚙️
 
-### Windows + WSL2
+### Windows + WSL2
 
-- GUI 表示は **WSLg** を利用  
-- `docker-compose.yml` の環境変数は既定で以下を設定  
+- **WSLg** is used for the GUI display  
+- The environment variables in `docker-compose.yml` are set as follows by default  
   ```yaml
   environment:
     - DISPLAY
@@ -194,65 +195,65 @@ PWD=$(pwd) docker compose restart        # 必要に応じて
     - QT_X11_NO_MITSHM=1
     - MESA_GL_VERSION_OVERRIDE=3.3
   ```
-- NVIDIA GPU を利用したい場合は `runtime: nvidia`、`NVIDIA_VISIBLE_DEVICES=all`、`NVIDIA_DRIVER_CAPABILITIES=all` のコメントを外してください。
+- If you want to use an NVIDIA GPU, uncomment `runtime: nvidia`, `NVIDIA_VISIBLE_DEVICES=all`, and `NVIDIA_DRIVER_CAPABILITIES=all`.
 
 ### Linux
 
-- ib2_simulatorコンテナを立ち上げるターミナルで以下を入力し、X11へのアクセスを許可しておく。
+- In the terminal where you start the ib2_simulator container, run the following beforehand to allow access to X11.
   ```bash
   xhost +local:docker
   ```
 
 ---
 
-## トラブルシューティング 🛠️
+## Troubleshooting 🛠️
 
-| 症状 | よくある原因 | 解決策 |
-| ---- | ------------ | ------ |
-| `Error: No such container: ib2_simulator` | コンテナ未起動 | `docker compose up -d` を実行 |
-| `Qt: cannot connect to X server` | DISPLAY 設定不一致 | ホスト / コンテナ双方の `$DISPLAY` を確認 |
-| ROS セットアップエラー | 環境スクリプト未読込 | `source /opt/ros/melodic/setup.bash` を実行 |
-| 画面が表示されない | X11 ソケットマウント漏れ | `/tmp/.X11-unix:` マウントを確認 |
+| Symptom | Common cause | Solution |
+| ------- | ------------ | -------- |
+| `Error: No such container: ib2_simulator` | Container not started | Run `docker compose up -d` |
+| `Qt: cannot connect to X server` | DISPLAY setting mismatch | Check `$DISPLAY` on both the host and the container |
+| ROS setup error | Environment script not sourced | Run `source /opt/ros/melodic/setup.bash` |
+| Nothing is displayed | X11 socket not mounted | Check the `/tmp/.X11-unix:` mount |
 
-詳細ログは:
+For detailed logs:
 
 ```bash
-# コンテナログ
+# Container logs
 docker logs ib2_simulator
 
-# X11 変数確認
-echo $DISPLAY                      # ホスト
+# Check X11 variables
+echo $DISPLAY                      # host
 docker exec ib2_simulator bash -c 'echo $DISPLAY'
 ```
 
 ---
 
-## 高度な使用方法 🌐
+## Advanced Usage 🌐
 
-### カスタマイズ可能なパラメータ
+### Customizable parameters
 
-- **HOST_USER_PATH**: ホストワークスペースを指すパス  
-- **ボリュームマウント**: 共有ディレクトリや X11 ソケット  
-- **環境変数**: DISPLAY / GPU 切替など
+- **HOST_USER_PATH**: Path pointing to the host workspace  
+- **Volume mounts**: Shared directories and the X11 socket  
+- **Environment variables**: DISPLAY, GPU switching, etc.
 
-### 開発のヒント
+### Development tips
 
-- ROS ワークスペースは `catkin_make` 後に **devel/setup.bash** を source  
-- Int‑Ball2 API 仕様を確認し、挙動・座標系を把握してから制御ロジックを実装
-
----
-
-## ライセンス情報 📜
-
-Int‑Ball2 シミュレータのライセンスは [JAXA 公式リポジトリ](https://github.com/jaxa/int-ball2_simulator) を参照してください。
+- After running `catkin_make` in a ROS workspace, source **devel/setup.bash**  
+- Check the Int‑Ball2 API specification and understand its behavior and coordinate systems before implementing your control logic
 
 ---
 
-## 貢献方法 🤝
+## License Information 📜
 
-不具合報告や機能提案は **Issues** へ、コード修正は **Pull Request** を歓迎します。
+For the license of the Int‑Ball2 simulator, refer to the [official JAXA repository](https://github.com/jaxa/int-ball2_simulator).
+
+---
+
+## How to Contribute 🤝
+
+Bug reports and feature suggestions are welcome in **Issues**, and code fixes are welcome as **Pull Requests**.
 
 
-> **注意**: 本プロジェクトは開発中であり、仕様は予告なく変更される場合があります。
+> **Caution**: This project is under development, and its specifications may change without notice.
 
 
