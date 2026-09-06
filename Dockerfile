@@ -119,7 +119,12 @@ FROM ubuntu:18.04
 ARG HOST_USER_PATH
 
 RUN apt-get clean && apt-get update && \
-    apt-get install -y wget git vim curl gnupg2 lsb-release iproute2
+    apt-get install -y wget git vim curl gnupg2 lsb-release iproute2 software-properties-common
+
+# Upgrade Mesa drivers for modern Intel iGPU (Raptor Lake) support
+RUN add-apt-repository -y ppa:kisak/kisak-mesa-stable && \
+    apt-get update && apt-get dist-upgrade -y && \
+    apt-get install -y mesa-utils
 
 # Prepare for Gazebo
 RUN sh -c 'echo "deb http://packages.osrfoundation.org/gazebo/ubuntu-stable `lsb_release -cs` main" > /etc/apt/sources.list.d/gazebo-stable.list'

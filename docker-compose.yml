@@ -3,19 +3,28 @@ services:
     image: ib2_simulator:latest
     container_name: ib2_simulator
     # runtime: nvidia   # GPU搭載環境でGPUを使いたい場合はアンコメント (Docker < 19.03)
-    gpus: all         # GPU搭載環境でGPUを使いたい場合はアンコメント (Docker >= 19.03)
+    # gpus: all         # GPU搭載環境でGPUを使いたい場合はアンコメント (Docker >= 19.03)
     privileged: true
     network_mode: host
     ipc: host
+
+    # Pass through the Intel iGPU render/card devices
+    devices:
+      - /dev/dri:/dev/dri
+
     environment:
       - DISPLAY # ホストのDISPLAY環境変数の値を反映する
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=all
+      #- NVIDIA_VISIBLE_DEVICES=all
+      #- NVIDIA_DRIVER_CAPABILITIES=all
       - LIBGL_ALWAYS_INDIRECT=0  # WSLgでは直接描画が可能な場合が多い
       - QT_X11_NO_MITSHM=1
-      - MESA_GL_VERSION_OVERRIDE=3.3
-      - __NV_PRIME_RENDER_OFFLOAD=1
-      - __GLX_VENDOR_LIBRARY_NAME=nvidia
+      #- MESA_GL_VERSION_OVERRIDE=3.3
+      #- __NV_PRIME_RENDER_OFFLOAD=1
+      #- __GLX_VENDOR_LIBRARY_NAME=nvidia
+      - MESA_LOADER_DRIVER_OVERRIDE=iris
+      - LIBGL_ALWAYS_SOFTWARE=0
+      - MESA_GL_VERSION_OVERRIDE=4.6
+
     tty: true
     # systemd用の必須設定
     cap_add:
